@@ -4,6 +4,7 @@ import cn.am.bean.Apply;
 import cn.am.bean.State;
 import cn.am.bean.User;
 import cn.am.dao.AdminDao;
+import cn.am.dao.UserDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

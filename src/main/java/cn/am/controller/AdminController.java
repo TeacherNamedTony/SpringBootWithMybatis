@@ -72,48 +72,6 @@ public class AdminController {
         List<State> list = adminService.getAllNearOverdue();
         return DataJSONResult.build(200, "管理员查询授权不足30天成功", list);
     }
-//    /**
-//     * 管理员批准授权
-//     * @param sid     state->sid
-//     * @param applyid state->applyid
-//     * @return
-//     */
-//    @GetMapping("ratify/{loginUserId}")
-//    public DataJSONResult ratify1(@PathVariable("loginUserId") String loginUserId,
-//                                 @RequestParam(value = "applyId",required = false) String applyId,
-//                                 @RequestParam(value = "sid",required = false) String sid, HttpSession session) {
-//        Apply applyDetail = adminService.getApplyByApplyid(applyId);
-//
-//        String machinenum = applyDetail.getMachinenum();
-//        String productversion = applyDetail.getProductversion();
-//        String desktopcon = applyDetail.getDesktopcon();
-//        String grantbegindate = applyDetail.getGrantbegindate();
-//        String grantenddate = applyDetail.getGrantenddate();
-////		机器码和授权信息
-//        String inputStr = new String();
-////      inputStr组成结构：机器码|平台版本号|桌面连接数|开始时间|结束时间
-//        inputStr = machinenum+"|"+productversion+"|"+desktopcon+"|"+grantbegindate+"|"+grantenddate;
-//        System.out.println("--------------------------" +
-//                "--------------CSSE平台授权------------" +
-//                "------------------------------------");
-//        //		计算输入长度长度l
-//        int input_src_len = inputStr.length();
-//        System.out.println("    机器授权信息："+inputStr);
-//
-//
-//        String isgrant = "1";
-//        String grantdate = DateUtil.dateToSimpleStr(new Date());
-//        String license = "测试模拟license";
-//        State s = new State();
-//        s.setSid(sid);
-//        s.setAid(loginUserId);
-//        s.setIsgrant(isgrant);
-//        s.setGrantdate(grantdate);
-//        s.setLicense(license);
-////        System.out.println(s.toString());
-//        return  DataJSONResult.ok(applyDetail);
-//    }
-
 
     /**
      * 管理员批准授权
@@ -137,13 +95,16 @@ public class AdminController {
         String desktopcon = applyDetail.getDesktopcon();
         String grantbegindate = applyDetail.getGrantbegindate();
         String grantenddate = applyDetail.getGrantenddate();
+
+        System.out.println("----------------------------------------------------------" +
+                "-----------------------------CSSE平台授权-----------------------------" +
+                "---------------------------------------------------------------------");
 //		  机器码和授权信息
         String inputStr = new String();
 //        inputStr组成结构：机器码|平台版本号|桌面连接数|开始时间|结束时间
         inputStr = machinenum+"|"+productversion+"|"+desktopcon+"|"+grantbegindate+"|"+grantenddate;
-        System.out.println("--------------------------" +
-                "--------------CSSE平台授权------------" +
-                "------------------------------------");
+        System.out.println("    机器授权信息===>"+inputStr);
+
 //		  计算输入长度长度l
         int input_src_len = inputStr.length();
         System.out.println("    授权机器信息码长度===>"+input_src_len);
@@ -158,7 +119,6 @@ public class AdminController {
             base64de_len=input_src_len*2;
         }
         System.out.println("    分配授权码输出空间===>"+base64de_len);
-        System.out.println("    机器授权信息："+inputStr);
 
 
 //		输出空间
@@ -169,16 +129,18 @@ public class AdminController {
         Clibrary instance = Clibrary.INSTANCE;
         //d加密内容
         int realer = instance.RsaLicenseEncode(inputStr,input_src_len+1, bBuf.array(), base64de_len);
-        System.out.println(new String(bBuf.array()).trim());
-        System.out.println(realer);
         String license = new String(bBuf.array()).trim();
+
         State s = new State();
         s.setSid(sid);
         s.setAid(aid);
         s.setIsgrant(isgrant);
         s.setGrantdate(grantdate);
         s.setLicense(license);
-        System.out.println(s.toString());
+        System.out.println("    授权码预览===>"+license);
+        System.out.println("-----------------------------------------------------------" +
+                "----------------------------------------------------------------------" +
+                "----------------------------------------------------------------------");
         boolean ret = adminService.ratify(s);
         if (ret) {
             return DataJSONResult.ok("aid="+aid+"批准授权sid="+sid+"成功");
