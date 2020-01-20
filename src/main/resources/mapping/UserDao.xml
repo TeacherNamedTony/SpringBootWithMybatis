@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.am.dao.UserDao">
+
+<!--	所有人登录登陆-->
+	<select id="login"  resultType="user"  parameterType="user">
+		select id,username,realname,company,isadmin,isdel,more from user where username=#{username} and password=#{password}
+	</select>
+<!--	查询该用户所有授权记录 -->
+	<select id="getState"  resultMap="allState" parameterType="String">
+		select * from state where uid  = #{uid} order by grantdate desc
+	</select>
+
+<!--	查询该用户未被授权记录 -->
+	<select id="getUntreatedState"  resultMap="allState" parameterType="String">
+		select * from state where uid  = #{uid} and isgrant=0 order by grantdate desc
+	</select>
+
+<!--	查询该用户已经被授权记录 -->
+	<select id="getAuditedState"  resultMap="allState" parameterType="String">
+		select * from state where uid  = #{uid} and isgrant=1 order by grantdate desc
+	</select>
+
+<!--	查询该用户到期授权记录 -->
+	<select id="getEndState"  resultMap="allState" parameterType="String">
+		select * from state where uid  = #{uid} and isgrant=2
+	</select>
+
+<!--	查询该用户异常授权记录 -->
+	<select id="getRevoke"  resultMap="allState" parameterType="String">
+		select * from state where uid  = #{uid} and isgrant=3
+	</select>
+
+<!--	查询该用户授权不足30天记录 -->
+	<select id="getNearOverdue"  resultMap="allState" parameterType="String">
+		select * from
+		(SELECT * from state  where uid  = #{uid} and isgrant=1) a
+		right join
+		(SELECT * from apply
+		where DATEDIFF(grantenddate,curdate())<![CDATA[<=]]>30 and DATEDIFF(grantenddate,curdate())<![CDATA[>=]]>0
+		order by DATEDIFF(grantenddate,curdate()) ASC) b
+		on a.applyid=b.applyid
+	</select>
+
+<!--	按ID查询user -->
+	<select id="selectUserByID"  resultType="user" parameterType="String">
+		select * from user where id  = #{uid}
+	</select>
+
+<!--	按ID查询apply -->
+	<select id="selectApplyByID"  resultType="apply" parameterType="String">
+		select * from apply where applyid  = #{applyid}
+	</select>
+
+<!--	按ID查询state -->
+	<select id="selectStateByID"  resultType="state" parameterType="String">
+		select * from state where sid  = #{sid}
+	</select>
+
+	<resultMap type="state" id="allState">
+		<id property="sid" column="sid"/>
+		<result property="applyid" column="applyid" />
+		<result property="uid" column="uid" />
+		<result property="aid" column="aid" />
+		<result property="isgrant" column="isgrant" />
+		<result property="grantdate" column="grantdate" />
+		<result property="license" column="license" />
+		<result property="isdel" column="isdel" />
+		<association property="userApplyDetail" select="cn.am.dao.UserDao.selectUserByID"  column="uid">
+		</association>
+		<association property="userRatifyDetail" select="cn.am.dao.UserDao.selectUserByID" column="aid">
+		</association>
+		<association property="applyDetail" select="cn.am.dao.UserDao.selectApplyByID" column="applyid">
+		</association>
+	</resultMap>
+
+
+<!--	动态更新apply -->
+	<update id="updateApply" parameterType="apply">
+		<if test="applyid != null">
+			update apply
+			<trim prefix="set" suffixOverrides=",">
+				<if test="project !=null and project != ''">
+					project = #{project},
+				</if>
+				<if test="applyername !=null and applyername != ''">
+					applyername = #{applyername},
+				</if>
+				<if test="softwarename !=null and softwarename != ''">
+					softwarename = #{softwarename},
+				</if>
+				<if test="applydate !=null and applydate != ''">
+					applydate = #{applydate},
+				</if>
+				<if test="applyertel !=null and applyertel != ''">
+					applyertel = #{applyertel},
+				</if>
+				<if test="grantuser !=null and grantuser != ''">
+					grantuser = #{grantuser},
+				</if>
+				<if test="grantuserperson !=null and grantuserperson != ''">
+					grantuserperson = #{grantuserperson},
+				</if>
+				<if test="grantuserpersontel !=null and grantuserpersontel != ''">
+					grantuserpersontel = #{grantuserpersontel},
+				</if>
+				<if test="grantbegindate !=null and grantbegindate != ''">
+					grantbegindate = #{grantbegindate},
+				</if>
+				<if test="grantenddate !=null and grantenddate != ''">
+					grantenddate = #{grantenddate},
+				</if>
+				<if test="servertype !=null and servertype != ''">
+					servertype = #{servertype},
+				</if>
+				<if test="serveros !=null and serveros != ''">
+					serveros = #{serveros},
+				</if>
+				<if test="serverip !=null and serverip != ''">
+					serverip = #{serverip},
+				</if>
+				<if test="deploymenttype !=null and deploymenttype != ''">
+					deploymenttype = #{deploymenttype},
+				</if>
+				<if test="granttype !=null and granttype != ''">
+					granttype = #{granttype},
+				</if>
+				<if test="productversion !=null and productversion != ''">
+					productversion = #{productversion},
+				</if>
+				<if test="grantfiletype !=null and grantfiletype != ''">
+					grantfiletype = #{grantfiletype},
+				</if>
+				<if test="usernum !=null and usernum != ''">
+					usernum = #{usernum},
+				</if>
+				<if test="controlnum !=null and controlnum != ''">
+					controlnum = #{controlnum},
+				</if>
+				<if test="computenum !=null and computenum != ''">
+					computenum = #{computenum},
+				</if>
+				<if test="shopinstancenum !=null and shopinstancenum != ''">
+					shopinstancenum = #{shopinstancenum},
+				</if>
+				<if test="shopappnum !=null and shopappnum != ''">
+					shopappnum = #{shopappnum},
+				</if>
+				<if test="desktopinstancenum !=null and desktopinstancenum != ''">
+					desktopinstancenum = #{desktopinstancenum},
+				</if>
+				<if test="desktopcon !=null and desktopcon != ''">
+					desktopcon = #{desktopcon},
+				</if>
+				<if test="machinenum !=null and machinenum != ''">
+					machinenum = #{machinenum},
+				</if>
+				<if test="applynote !=null and applynote != ''">
+					applynote #{applynote},
+				</if>
+			</trim>
+			where applyid = #{applyid}
+		</if>
+	</update>
+
+<!--	动态添加apply -->
+	<insert id="addNewApply" parameterType="apply" useGeneratedKeys="true" keyProperty="applyid">
+		insert into apply
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="project !=null and project != ''">
+				project,
+			</if>
+			<if test="applyername !=null and applyername != ''">
+				applyername,
+			</if>
+			<if test="softwarename !=null and softwarename != ''">
+				softwarename,
+			</if>
+			<if test="applydate !=null and applydate != ''">
+				applydate,
+			</if>
+			<if test="applyertel !=null and applyertel != ''">
+				applyertel,
+			</if>
+			<if test="grantuser !=null and grantuser != ''">
+				grantuser,
+			</if>
+			<if test="grantuserperson !=null and grantuserperson != ''">
+				grantuserperson,
+			</if>
+			<if test="grantuserpersontel !=null and grantuserpersontel != ''">
+				grantuserpersontel,
+			</if>
+			<if test="grantbegindate !=null and grantbegindate != ''">
+				grantbegindate,
+			</if>
+			<if test="grantenddate !=null and grantenddate != ''">
+				grantenddate,
+			</if>
+			<if test="servertype !=null and servertype != ''">
+				servertype,
+			</if>
+			<if test="serveros !=null and serveros != ''">
+				serveros,
+			</if>
+			<if test="serverip !=null and serverip != ''">
+				serverip,
+			</if>
+			<if test="deploymenttype !=null and deploymenttype != ''">
+				deploymenttype,
+			</if>
+			<if test="granttype !=null and granttype != ''">
+				granttype,
+			</if>
+			<if test="productversion !=null and productversion != ''">
+				productversion,
+			</if>
+			<if test="grantfiletype !=null and grantfiletype != ''">
+				grantfiletype,
+			</if>
+			<if test="usernum !=null and usernum != ''">
+				usernum,
+			</if>
+			<if test="controlnum !=null and controlnum != ''">
+				controlnum,
+			</if>
+			<if test="computenum !=null and computenum != ''">
+				computenum,
+			</if>
+			<if test="shopinstancenum !=null and shopinstancenum != ''">
+				shopinstancenum,
+			</if>
+			<if test="shopappnum !=null and shopappnum != ''">
+				shopappnum,
+			</if>
+			<if test="desktopinstancenum !=null and desktopinstancenum != ''">
+				desktopinstancenum,
+			</if>
+			<if test="desktopcon !=null and desktopcon != ''">
+				desktopcon,
+			</if>
+			<if test="machinenum !=null and machinenum!= ''">
+				machinenum,
+			</if>
+			<if test="applynote !=null and applynote != ''">
+				applynote,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="project !=null and project != ''">
+				 #{project},
+			</if>
+			<if test="applyername !=null and applyername != ''">
+				#{applyername},
+			</if>
+			<if test="softwarename !=null and softwarename != ''">
+				#{softwarename},
+			</if>
+			<if test="applydate !=null and applydate != ''">
+				#{applydate},
+			</if>
+			<if test="applyertel !=null and applyertel != ''">
+				#{applyertel},
+			</if>
+			<if test="grantuser !=null and grantuser != ''">
+				#{grantuser},
+			</if>
+			<if test="grantuserperson !=null and grantuserperson != ''">
+				#{grantuserperson},
+			</if>
+			<if test="grantuserpersontel !=null and grantuserpersontel != ''">
+				#{grantuserpersontel},
+			</if>
+			<if test="grantbegindate !=null and grantbegindate != ''">
+				#{grantbegindate},
+			</if>
+			<if test="grantenddate !=null and grantenddate != ''">
+				#{grantenddate},
+			</if>
+			<if test="servertype !=null and servertype != ''">
+				#{servertype},
+			</if>
+			<if test="serveros !=null and serveros != ''">
+				#{serveros},
+			</if>
+			<if test="serverip !=null and serverip != ''">
+				#{serverip},
+			</if>
+			<if test="deploymenttype !=null and deploymenttype != ''">
+				#{deploymenttype},
+			</if>
+			<if test="granttype !=null and granttype != ''">
+				#{granttype},
+			</if>
+			<if test="productversion !=null and productversion != ''">
+				#{productversion},
+			</if>
+			<if test="grantfiletype !=null and grantfiletype != ''">
+				#{grantfiletype},
+			</if>
+
+			<if test="usernum !=null and usernum != ''">
+				#{usernum},
+			</if>
+			<if test="controlnum !=null and controlnum != ''">
+				 #{controlnum},
+			</if>
+			<if test="computenum !=null and computenum != ''">
+				 #{computenum},
+			</if>
+			<if test="shopinstancenum !=null and shopinstancenum != ''">
+				 #{shopinstancenum},
+			</if>
+			<if test="shopappnum !=null and shopappnum != ''">
+				 #{shopappnum},
+			</if>
+			<if test="desktopinstancenum !=null and desktopinstancenum != ''">
+				 #{desktopinstancenum},
+			</if>
+			<if test="desktopcon !=null and desktopcon != ''">
+				 #{desktopcon},
+			</if>
+			<if test="machinenum !=null and machinenum != ''">
+				#{machinenum},
+			</if>
+			<if test="applynote !=null and applynote != ''">
+				#{applynote},
+			</if>
+
+		</trim>
+	</insert>
+
+<!--	动态添加state -->
+	<insert id="addNewState" parameterType="state" useGeneratedKeys="true" keyProperty="sid">
+		insert into state
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="applyid !=null and applyid != ''">
+				applyid,
+			</if>
+			<if test="uid !=null and uid != ''">
+				uid,
+			</if>
+			<if test="aid !=null and aid != ''">
+				aid,
+			</if>
+			<if test="isgrant !=null and isgrant != ''">
+				isgrant,
+			</if>
+			<if test="grantdate !=null and grantdate != ''">
+				grantdate,
+			</if>
+			<if test="license !=null and license != ''">
+				license,
+			</if>
+			<if test="isdel !=null and isdel != ''">
+				isdel,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="applyid !=null and applyid != ''">
+				#{applyid},
+			</if>
+			<if test="uid !=null and uid != ''">
+				#{uid},
+			</if>
+			<if test="aid !=null and aid != ''">
+				#{aid},
+			</if>
+			<if test="isgrant !=null and isgrant != ''">
+				#{isgrant},
+			</if>
+			<if test="grantdate !=null and grantdate != ''">
+				#{grantdate},
+			</if>
+			<if test="license !=null and license != ''">
+				#{license},
+			</if>
+			<if test="isdel !=null and isdel != ''">
+				#{isdel},
+			</if>
+		</trim>
+	</insert>
+	<!--	动态更新用户密码-->
+	<update id="changePassword" parameterType="user">
+		<if test="id != null">
+			UPDATE user set password = #{password} where id=#{id}
+		</if>
+	</update>
+	<!--	动态更新state -->
+	<update id="updateState" parameterType="state">
+		<if test="sid != null">
+			update state
+			<trim prefix="set" suffixOverrides=",">
+				<if test="applyid !=null and applyid != ''">
+					applyid = #{applyid},
+				</if>
+				<if test="uid !=null and uid != ''">
+					uid = #{uid},
+				</if>
+				<if test="aid !=null and aid != ''">
+					aid = #{aid},
+				</if>
+				<if test="isgrant !=null and isgrant != ''">
+					isgrant = #{isgrant},
+				</if>
+				<if test="grantdate !=null and grantdate != ''">
+					grantdate = #{grantdate},
+				</if>
+				<if test="license !=null and license != ''">
+					license = #{license},
+				</if>
+				<if test="isdel !=null and isdel != ''">
+					isdel = #{isdel},
+				</if>
+			</trim>
+			where sid = #{sid}
+		</if>
+	</update>
+</mapper>
