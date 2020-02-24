@@ -93,8 +93,8 @@ public class AdminController {
         String machinenum = applyDetail.getMachinenum();
         String productversion = applyDetail.getProductversion();
         String desktopcon = applyDetail.getDesktopcon();
-        String grantbegindate = applyDetail.getGrantbegindate();
-        String grantenddate = applyDetail.getGrantenddate();
+        String grantbegindate = applyDetail.getGrantbegindate().replace("-","");
+        String grantenddate = applyDetail.getGrantenddate().replace("-","");
 
         System.out.println("----------------------------------------------------------" +
                 "-----------------------------CSSE平台授权-----------------------------" +
